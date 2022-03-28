@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/NTHU-LSALAB/NTHU-Distributed-System/modules/comment/dao"
 	"github.com/NTHU-LSALAB/NTHU-Distributed-System/modules/comment/pb"
@@ -35,6 +36,17 @@ gRPC TODO:
 3. Pack the array into correct format.
 */
 func (s *service) ListComment(ctx context.Context, req *pb.ListCommentRequest) (*pb.ListCommentResponse, error) {
+	comments, err := s.commentDAO.ListByVideoID(ctx, req.VideoId, int(req.Limit), int(req.Offset))
+	if err != nil {
+		return nil, err
+	}
+
+	pbComments := make([]*pb.CommentInfo, 0, len(comments))
+	for _, video := range comments {
+		pbComments = append(pbComments, video.ToProto())
+	}
+
+	return &pb.ListCommentResponse{Comments: pbComments}, nil
 }
 
 /*
@@ -46,6 +58,20 @@ gRPC TODO:
 4. Return the result. You may use .String() method to transform the return value of dao API to a string.
 */
 func (s *service) CreateComment(ctx context.Context, req *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
+	_, err := s.videoClient.GetVideo(ctx, &videopb.GetVideoRequest{
+		Id: req.VideoId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	id, err2 := s.commentDAO.Create(ctx, &dao.Comment{VideoID: req.VideoId, Content: req.Content})
+
+	if err2 != nil {
+		return nil, err2
+	}
+
+	return &pb.CreateCommentResponse{Id: id.String()}, nil
 }
 
 /*
@@ -60,6 +86,19 @@ func (s *service) UpdateComment(ctx context.Context, req *pb.UpdateCommentReques
 	if err != nil {
 		return nil, ErrInvalidUUID
 	}
+
+	comment := &dao.Comment{ID: commentID, Content: req.Content}
+
+	err2 := s.commentDAO.Update(ctx, comment)
+	if err2 != nil {
+		if errors.Is(err2, dao.ErrCommentNotFound) {
+			return nil, ErrCommentNotFound
+		}
+
+		return nil, err2
+	}
+
+	return &pb.UpdateCommentResponse{Comment: comment.ToProto()}, nil
 }
 
 /*
@@ -72,6 +111,16 @@ func (s *service) DeleteComment(ctx context.Context, req *pb.DeleteCommentReques
 	if err != nil {
 		return nil, ErrInvalidUUID
 	}
+
+	if err := s.commentDAO.Delete(ctx, commentID); err != nil {
+		if errors.Is(err, dao.ErrCommentNotFound) {
+			return nil, ErrCommentNotFound
+		}
+
+		return nil, err
+	}
+
+	return &pb.DeleteCommentResponse{}, nil
 }
 
 /*
@@ -80,4 +129,9 @@ gRPC TODO:
 2. Return the response.
 */
 func (s *service) DeleteCommentByVideoID(ctx context.Context, req *pb.DeleteCommentByVideoIDRequest) (*pb.DeleteCommentByVideoIDResponse, error) {
+	if err := s.commentDAO.DeleteByVideoID(ctx, req.VideoId); err != nil {
+		return nil, err
+	}
+
+	return &pb.DeleteCommentByVideoIDResponse{}, nil
 }
