@@ -25,6 +25,7 @@ const (
 // create redisCommentDAO by cache and baseDAO
 func NewRedisCommentDAO(client *rediskit.RedisClient, baseDAO CommentDAO) *redisCommentDAO {
 	// Redis TODO
+	//test
 }
 
 // List all the comments related to the videoID
