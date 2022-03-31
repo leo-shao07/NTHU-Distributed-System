@@ -60,14 +60,12 @@ func (dao *redisCommentDAO) ListByVideoID(ctx context.Context, videoID string, l
 func (dao *redisCommentDAO) Create(ctx context.Context, comment *Comment) (uuid.UUID, error) {
 	// Redis TODO
 	return dao.baseDAO.Create(ctx, comment)
-
 }
 
 // The operation are not cacheable, just pass down to baseDAO
 func (dao *redisCommentDAO) Update(ctx context.Context, comment *Comment) error {
 	// Redis TODO
 	return dao.baseDAO.Update(ctx, comment)
-
 }
 
 // The operation are not cacheable, just pass down to baseDAO
@@ -80,5 +78,4 @@ func (dao *redisCommentDAO) Delete(ctx context.Context, id uuid.UUID) error {
 func (dao *redisCommentDAO) DeleteByVideoID(ctx context.Context, videoID string) error {
 	// Redis TODO
 	return dao.baseDAO.DeleteByVideoID(ctx, videoID)
-
 }

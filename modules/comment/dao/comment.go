@@ -45,7 +45,7 @@ var (
 // key format: "listComment:{videoID}:{limit}:{offset}"
 func listCommentKey(videoID string, limit, offset int) string {
 	// Redis TODO
-	return fmt.Sprintf("listVideo:%d:%d:%d", videoID, limit, offset)
+	return fmt.Sprintf("listVideo:%s:%d:%d", videoID, limit, offset)
 }
 
 func NewFakeComment(videoID string) *Comment {
