@@ -4,7 +4,10 @@ metadata:
   name: comment-api
 spec:
   type: ClusterIP
-  ports:
+  ports: 
   - name: grpc
     port: 8081
     targetPort: 8081
+  - name: prometheus
+    port: 2222
+    targetPort: 2222
